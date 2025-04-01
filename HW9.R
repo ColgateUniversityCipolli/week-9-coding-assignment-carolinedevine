@@ -83,31 +83,34 @@ hat.sigma <- MLEs.lnorm$par[2]
 
 #######################################
 # Part C: Compute the Likelihood Ratio
+# Weibull vs Gamma
+#######################################
+weibull.loglikelihood <- -2166.496
+gamma.loglikelihood <- -MLEs.gamma$value 
+
+Q <- exp(weibull.loglikelihood-gamma.loglikelihood)
+# Q = 2.161379e-07 
+
+#######################################
+# Part D: Compute the Likelihood Ratio
+# Weibull vs Log-Normal
 #######################################
 weibull.loglikelihood <- -2166.496
 lnorm.loglikelihood <- -MLEs.lnorm$value # needs to be negative to 
                                          # get the log-likelihood
 
-Q <- weibull.loglikelihood/lnorm.loglikelihood
-# Q = 0.983 which is greater than 0
-
-#######################################
-# Part D: Compute the Likelihood Ratio
-#######################################
-weibull.loglikelihood <- -2166.496
-gamma.loglikelihood <- -MLEs.gamma$value 
-
-Q2 <- weibull.loglikelihood/gamma.loglikelihood
-# Q = 1.007 which is greater than 0
+Q2 <- exp(weibull.loglikelihood-lnorm.loglikelihood)
+# Q = 2.370668e+16
 
 #######################################
 # Part E: Compute the Likelihood Ratio
+# Gamma vs Log-Normal
 #######################################
 gamma.loglikelihood <- -MLEs.gamma$value 
 lnorm.loglikelihood <- -MLEs.lnorm$value 
 
-Q3 <- gamma.loglikelihood/lnorm.loglikelihood
-# Q = 0.976 which is greater than 0
+Q3 <- exp(gamma.loglikelihood - lnorm.loglikelihood)
+# Q = 1.096831e+23 
 
 table <- tibble(
   distribution = c("Weibull", "Gamma", "Log-Normal"),
@@ -131,3 +134,4 @@ table2 <- tibble(
                          Q2,
                          Q3)
 )
+view(table2)
