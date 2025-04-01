@@ -81,6 +81,53 @@ MLEs.lnorm <- optim(fn = lllognormal,
 hat.mu <- MLEs.lnorm$par[1]
 hat.sigma <- MLEs.lnorm$par[2]
 
-# Part C - Likelihood Ratio
+#######################################
+# Part C: Compute the Likelihood Ratio
+#######################################
+weibull.loglikelihood <- -2166.496
+lnorm.loglikelihood <- -MLEs.lnorm$value # needs to be negative to 
+                                         # get the log-likelihood
 
-# Part D 
+Q <- weibull.loglikelihood/lnorm.loglikelihood
+# Q = 0.983 which is greater than 0
+
+#######################################
+# Part D: Compute the Likelihood Ratio
+#######################################
+weibull.loglikelihood <- -2166.496
+gamma.loglikelihood <- -MLEs.gamma$value 
+
+Q2 <- weibull.loglikelihood/gamma.loglikelihood
+# Q = 1.007 which is greater than 0
+
+#######################################
+# Part E: Compute the Likelihood Ratio
+#######################################
+gamma.loglikelihood <- -MLEs.gamma$value 
+lnorm.loglikelihood <- -MLEs.lnorm$value 
+
+Q3 <- gamma.loglikelihood/lnorm.loglikelihood
+# Q = 0.976 which is greater than 0
+
+table <- tibble(
+  distribution = c("Weibull", "Gamma", "Log-Normal"),
+  `parameter 1` = c(2.1871,
+                    round(hat.alpha, 4),
+                    round(hat.mu, 4)),
+  `parameter 2` = c(2.1871,
+                    round(hat.beta, 4),
+                    round(hat.sigma, 4)),
+  `log-likelihood` = c( -2166.496,
+                        -MLEs.gamma$value,
+                        -MLEs.lnorm$value)
+)
+view(table)
+
+table2 <- tibble(
+  distribution = c("Weibull vs Gamma", 
+                   "Weibull vs Log-Normal", 
+                   "Gamma vs Log-Normal"),
+  `Likelihood Ratio` = c(Q,
+                         Q2,
+                         Q3)
+)
