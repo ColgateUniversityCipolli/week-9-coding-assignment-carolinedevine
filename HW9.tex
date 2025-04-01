@@ -89,16 +89,102 @@ which \texttt{R} cannot differentiate from 0.
   the Log-Normal (see Lecture 17).
   \begin{enumerate}
     \item Compute the MLEs for these data using a Gamma distribution. 
+
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{llgamma} \hlkwb{<-} \hlkwa{function}\hldef{(}\hlkwc{par}\hldef{,} \hlkwc{data}\hldef{,} \hlkwc{neg}\hldef{=F)\{}
+  \hldef{alpha} \hlkwb{<-} \hlkwd{exp}\hldef{(par[}\hlnum{1}\hldef{])} \hlcom{# go from (-inf,inf) to (0,inf)}
+  \hldef{beta} \hlkwb{<-} \hlkwd{exp}\hldef{(par[}\hlnum{2}\hldef{])} \hlcom{# go from (-inf,inf) to (0,inf)}
+
+  \hldef{ll} \hlkwb{<-} \hlkwd{sum}\hldef{(}\hlkwd{log}\hldef{(}\hlkwd{dgamma}\hldef{(}\hlkwc{x}\hldef{=data,} \hlkwc{shape}\hldef{=alpha,} \hlkwc{scale}\hldef{=beta)),} \hlkwc{na.rm}\hldef{=T)}
+
+  \hlkwd{return}\hldef{(}\hlkwd{ifelse}\hldef{(neg,} \hlopt{-}\hldef{ll, ll))}
+\hldef{\}}
+
+\hldef{MLEs.gamma} \hlkwb{<-} \hlkwd{optim}\hldef{(}\hlkwc{fn} \hldef{= llgamma,}
+              \hlkwc{par} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{1}\hldef{,}\hlnum{1}\hldef{),}
+              \hlkwc{data} \hldef{= dat.precip.long}\hlopt{$}\hldef{Precipitation,}
+              \hlkwc{neg}\hldef{=T)}
+
+\hldef{(hat.alpha} \hlkwb{<-} \hldef{MLEs.gamma}\hlopt{$}\hldef{par[}\hlnum{1}\hldef{])}
+\end{alltt}
+\begin{verbatim}
+## [1] 1.429383
+\end{verbatim}
+\begin{alltt}
+\hldef{(hat.beta} \hlkwb{<-} \hldef{MLEs.gamma}\hlopt{$}\hldef{par[}\hlnum{2}\hldef{])}
+\end{alltt}
+\begin{verbatim}
+## [1] -0.1736464
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+    
     \item Compute the MLEs for these data using the Log-Normal distribution.
+    
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{lllognormal} \hlkwb{<-} \hlkwa{function}\hldef{(}\hlkwc{par}\hldef{,} \hlkwc{data}\hldef{,} \hlkwc{neg}\hldef{=F)\{}
+  \hldef{mu} \hlkwb{<-} \hldef{par[}\hlnum{1}\hldef{]}
+  \hldef{sigma} \hlkwb{<-} \hldef{par[}\hlnum{2}\hldef{]}
+
+  \hldef{ll} \hlkwb{<-} \hlkwd{sum}\hldef{(}\hlkwd{log}\hldef{(}\hlkwd{dlnorm}\hldef{(}\hlkwc{x}\hldef{=data,} \hlkwc{meanlog} \hldef{= mu,} \hlkwc{sdlog} \hldef{= sigma)),} \hlkwc{na.rm}\hldef{=T)}
+
+  \hlkwd{return}\hldef{(}\hlkwd{ifelse}\hldef{(neg,} \hlopt{-}\hldef{ll, ll))}
+\hldef{\}}
+
+\hldef{MLEs.lnorm} \hlkwb{<-} \hlkwd{optim}\hldef{(}\hlkwc{fn} \hldef{= lllognormal,}
+              \hlkwc{par} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{1}\hldef{,}\hlnum{1}\hldef{),}
+              \hlkwc{data} \hldef{= dat.precip.long}\hlopt{$}\hldef{Precipitation,}
+              \hlkwc{neg}\hldef{=T)}
+
+\hldef{(hat.mu} \hlkwb{<-} \hldef{MLEs.lnorm}\hlopt{$}\hldef{par[}\hlnum{1}\hldef{])}
+\end{alltt}
+\begin{verbatim}
+## [1] 1.131261
+\end{verbatim}
+\begin{alltt}
+\hldef{(hat.sigma} \hlkwb{<-} \hldef{MLEs.lnorm}\hlopt{$}\hldef{par[}\hlnum{2}\hldef{])}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.5333417
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+    
     \item Compute the likelihood ratio to compare the Weibull and the Gamma distribution. 
     Which has a better fit according to the likelhiood ratio?
     \[Q = \frac{L(\{\hat{a}, \hat{\sigma}\}|\mathbf{x})}{L(\{\hat{\alpha}, \hat{\beta}\}|\mathbf{x})}=e^{\left[\mathcal{L}(\{\hat{a}, \hat{\sigma}\}|\mathbf{x}) - \mathcal{L}(\{\hat{\alpha}, \hat{\beta}\}|\mathbf{x})\right]}\]
+    
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# Weibull vs Gamma}
+\hldef{weibull.loglikelihood} \hlkwb{<-} \hlopt{-}\hlnum{2166.496}
+\hldef{gamma.loglikelihood} \hlkwb{<-} \hlopt{-}\hldef{MLEs.gamma}\hlopt{$}\hldef{value}
+
+\hldef{(Q} \hlkwb{<-} \hlkwd{exp}\hldef{(weibull.loglikelihood}\hlopt{-}\hldef{gamma.loglikelihood))}
+\end{alltt}
+\begin{verbatim}
+## [1] 2.161379e-07
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+    
     \item Compute the likelihood ratio to compare the Weibull and the Log-Normal distribution.
     Which has a better fit according to the likelihood ratio?
     \[Q = \frac{L(\{\hat{a}, \hat{\sigma}\}|\mathbf{x})}{L(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})}=e^{\left[\mathcal{L}(\{\hat{a}, \hat{\sigma}\}|\mathbf{x}) - \mathcal{L}(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})\right]}\]
+    
+    Answer
+    
     \item Compute the likelihood ratio to compare the Gamma and the Log-Normal distribution.
     Which has a better fit according to the likelhiood ratio?
     \[Q = \frac{L(\{\hat{\alpha}, \hat{\beta}\}|\mathbf{x})}{L(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})}=e^{\left[\mathcal{L}(\{\hat{\alpha}, \hat{\beta}\}|\mathbf{x}) - \mathcal{L}(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})\right]}\]
+    
+    Answer
+    
   \end{enumerate}
   \item Optional Coding Challenge. Choose the ``best" distribution and refit the
   model by season.
