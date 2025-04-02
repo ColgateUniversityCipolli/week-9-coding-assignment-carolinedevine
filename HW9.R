@@ -20,15 +20,6 @@ dat.precip.long <- dat.precip |>
   mutate(Precipitation = case_when(Precipitation == "M" ~ NA_character_,
                                    TRUE                 ~ Precipitation))|>
   mutate(Precipitation = as.numeric(Precipitation))
-# Summarize Data
-ggplot(data=dat.precip.long) +
-  geom_histogram(aes(x=Precipitation, y=after_stat(density)),
-                 breaks=seq(0, 15, 1),
-                 color="grey")+
-  geom_hline(yintercept = 0)+
-  theme_bw() +
-  xlab("Precipitation (Inches)")
-ylab("Density")
 
 library(e1071)
 dat.precip.long |>
@@ -45,8 +36,8 @@ dat.precip.long |>
 # Part A: Maximum Likelihood (Gamma)
 #####################################
 llgamma <- function(par, data, neg=F){
-  alpha <- exp(par[1]) # go from (-inf,inf) to (0,inf)
-  beta <- exp(par[2]) # go from (-inf,inf) to (0,inf)
+  alpha <- exp(par[1]) # need alpha greater than 0 bc alpha E R+
+  beta <- exp(par[2]) # need beta greater than 0 bc beta E R+
   
   ll <- sum(log(dgamma(x=data, shape=alpha, scale=beta)), na.rm=T)
   
@@ -58,15 +49,15 @@ MLEs.gamma <- optim(fn = llgamma,
               data = dat.precip.long$Precipitation,
               neg=T)
 
-hat.alpha <- MLEs.gamma$par[1]
-hat.beta <- MLEs.gamma$par[2]
+hat.alpha <- exp(MLEs.gamma$par[1])
+hat.beta <- exp(MLEs.gamma$par[2])
 
 #####################################
 # Part B: Maximum Likelihood (Log-Normal)
 #####################################
 lllognormal <- function(par, data, neg=F){
   mu <- par[1] 
-  sigma <- par[2] 
+  sigma <- exp(par[2]) # need sigma greater than 0 bc sigma E R+
   
   ll <- sum(log(dlnorm(x=data, meanlog = mu, sdlog = sigma)), na.rm=T)
   
@@ -79,7 +70,7 @@ MLEs.lnorm <- optim(fn = lllognormal,
               neg=T)
 
 hat.mu <- MLEs.lnorm$par[1]
-hat.sigma <- MLEs.lnorm$par[2]
+hat.sigma <- exp(MLEs.lnorm$par[2])
 
 #######################################
 # Part C: Compute the Likelihood Ratio
@@ -100,7 +91,7 @@ lnorm.loglikelihood <- -MLEs.lnorm$value # needs to be negative to
                                          # get the log-likelihood
 
 Q2 <- exp(weibull.loglikelihood-lnorm.loglikelihood)
-# Q = 2.370668e+16
+# Q = 2.370639e+16
 
 #######################################
 # Part E: Compute the Likelihood Ratio
@@ -110,14 +101,14 @@ gamma.loglikelihood <- -MLEs.gamma$value
 lnorm.loglikelihood <- -MLEs.lnorm$value 
 
 Q3 <- exp(gamma.loglikelihood - lnorm.loglikelihood)
-# Q = 1.096831e+23 
+# Q = 1.096818e+23 
 
 table <- tibble(
   distribution = c("Weibull", "Gamma", "Log-Normal"),
   `parameter 1` = c(2.1871,
                     round(hat.alpha, 4),
                     round(hat.mu, 4)),
-  `parameter 2` = c(2.1871,
+  `parameter 2` = c(3.9683,
                     round(hat.beta, 4),
                     round(hat.sigma, 4)),
   `log-likelihood` = c( -2166.496,

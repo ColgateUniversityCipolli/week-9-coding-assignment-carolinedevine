@@ -72,8 +72,8 @@ dat.precip.long |>
 @
 <<size="scriptsize">>=
 llgamma <- function(par, data, neg=F){
-  alpha <- exp(par[1]) # go from (-inf,inf) to (0,inf)
-  beta <- exp(par[2]) # go from (-inf,inf) to (0,inf)
+  alpha <- exp(par[1]) # need alpha greater than 0 bc alpha E R+
+  beta <- exp(par[2]) # need beta greater than 0 bc beta E R+
   
   ll <- sum(log(dgamma(x=data, shape=alpha, scale=beta)), na.rm=T)
   
@@ -85,16 +85,15 @@ MLEs.gamma <- optim(fn = llgamma,
               data = dat.precip.long$Precipitation,
               neg=T)
 
-(hat.alpha <- MLEs.gamma$par[1])
-(hat.beta <- MLEs.gamma$par[2])
+(hat.alpha <- exp(MLEs.gamma$par[1]))
+(hat.beta <- exp(MLEs.gamma$par[2]))
 @
-    
     \item Compute the MLEs for these data using the Log-Normal distribution.
     
 <<size="scriptsize">>=
 lllognormal <- function(par, data, neg=F){
   mu <- par[1] 
-  sigma <- par[2] 
+  sigma <- exp(par[2]) # need sigma greater than 0 bc sigma E R+
   
   ll <- sum(log(dlnorm(x=data, meanlog = mu, sdlog = sigma)), na.rm=T)
   
@@ -107,7 +106,7 @@ MLEs.lnorm <- optim(fn = lllognormal,
               neg=T)
 
 (hat.mu <- MLEs.lnorm$par[1])
-(hat.sigma <- MLEs.lnorm$par[2])
+(hat.sigma <- exp(MLEs.lnorm$par[2]))
 @
     
     \item Compute the likelihood ratio to compare the Weibull and the Gamma distribution. 
@@ -121,19 +120,33 @@ gamma.loglikelihood <- -MLEs.gamma$value
 
 (Q <- exp(weibull.loglikelihood-gamma.loglikelihood))
 @
-    
+The likelihood ratio of the Weibull and the Gamma distribution is \texttt{Q = 2.161379e-07} which is less than 1. This indicates that the Gamma distribution is a better fit according to the likelihood ratio.   
     \item Compute the likelihood ratio to compare the Weibull and the Log-Normal distribution.
     Which has a better fit according to the likelihood ratio?
     \[Q = \frac{L(\{\hat{a}, \hat{\sigma}\}|\mathbf{x})}{L(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})}=e^{\left[\mathcal{L}(\{\hat{a}, \hat{\sigma}\}|\mathbf{x}) - \mathcal{L}(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})\right]}\]
-    
-    Answer
-    
+<<size="scriptsize">>=
+# Weibull vs Log-Normal    
+weibull.loglikelihood <- -2166.496
+lnorm.loglikelihood <- -MLEs.lnorm$value # needs to be negative to 
+                                         # get the log-likelihood
+
+(Q2 <- exp(weibull.loglikelihood-lnorm.loglikelihood))
+@  
+The likelihood ratio of the Weibull and the Log-Normal distribution is \texttt{Q = 2.370639e+16} which is greater than 1. This indicates that the Weibull distribution is a better fit according to the likelihood ratio.   
     \item Compute the likelihood ratio to compare the Gamma and the Log-Normal distribution.
     Which has a better fit according to the likelhiood ratio?
     \[Q = \frac{L(\{\hat{\alpha}, \hat{\beta}\}|\mathbf{x})}{L(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})}=e^{\left[\mathcal{L}(\{\hat{\alpha}, \hat{\beta}\}|\mathbf{x}) - \mathcal{L}(\{\hat{\mu}, \hat{\sigma}\}|\mathbf{x})\right]}\]
-    
-    Answer
-    
+<<size="scriptsize">>=
+# Gamma vs Log-Normal 
+gamma.loglikelihood <- -MLEs.gamma$value 
+lnorm.loglikelihood <- -MLEs.lnorm$value 
+
+(Q3 <- exp(gamma.loglikelihood - lnorm.loglikelihood))
+@
+The likelihood ratio of the Gamma and the Log-Normal distribution is \texttt{Q = 1.096818e+23} which is greater than 1. This indicates that the Gamma distribution is a better fit according to the likelihood ratio.   
+
+From our analysis, we can see that the overall takeaway of what right-skewed distribution we could use to fit the monthly precipitation amounts in Madison County is that Gamma is the best fit, Weibull is the second best fit, and Log-Normal is the worst fit according to the likelihood ratios. 
+
   \end{enumerate}
   \item Optional Coding Challenge. Choose the ``best" distribution and refit the
   model by season.
